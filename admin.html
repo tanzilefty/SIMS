@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">🎓 Admin Dashboard</h1>
+            <button id="logoutBtn" class="btn btn-logout">Logout</button>
+        </div>
+        
+        <div id="successMessage" class="success-message"></div>
+        <div id="errorMessage" class="error-message"></div>
+        
+        <!-- Add Student -->
+        <div class="section">
+            <h2 class="section-title">Add Student</h2>
+            <form id="addStudentForm">
+                <div class="form-row">
+                    <input type="text" id="studentId" placeholder="Student ID" required>
+                    <input type="text" id="studentName" placeholder="Student Name" required>
+                    <button type="submit" class="btn" style="width: auto;">Add</button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Assign Result -->
+        <div class="section">
+            <h2 class="section-title">Assign Result</h2>
+            <form id="assignResultForm">
+                <div class="form-row">
+                    <input type="text" id="resultStudentId" placeholder="Student ID" required>
+                    <input type="number" id="marks" min="0" max="100" placeholder="Marks (0-100)" required>
+                    <button type="submit" class="btn" style="width: auto;">Assign</button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Student List -->
+        <div class="section">
+            <h2 class="section-title">Student Records</h2>
+            <table class="student-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Marks</th>
+                        <th>Grade</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="studentTableBody">
+                    <tr><td colspan="5" style="text-align: center;">No students added</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <script src="app.js"></script>
+    <script>
+        // Check admin access
+        if (localStorage.getItem('userRole') !== 'admin' || localStorage.getItem('isLoggedIn') !== 'true') {
+            window.location.href = 'login.html';
+        }
+        
+        const STUDENTS_KEY = 'students';
+        let students = [];
+        
+        function loadStudents() {
+            const stored = localStorage.getItem(STUDENTS_KEY);
+            students = stored ? JSON.parse(stored) : [];
+            renderTable();
+        }
+        
+        function saveStudents() {
+            localStorage.setItem(STUDENTS_KEY, JSON.stringify(students));
+        }
+        
+        function calculateGrade(marks) {
+            if (marks >= 80) return 'A+';
+            if (marks >= 70) return 'A';
+            if (marks >= 60) return 'B';
+            if (marks >= 50) return 'C';
+            return 'F';
+        }
+        
+        function showMessage(msg, isSuccess) {
+            const div = isSuccess ? document.getElementById('successMessage') : document.getElementById('errorMessage');
+            div.textContent = msg;
+            div.style.display = 'block';
+            setTimeout(() => div.style.display = 'none', 3000);
+        }
+        
+        function renderTable() {
+            const tbody = document.getElementById('studentTableBody');
+            if (students.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No students added</td></tr>';
+                return;
+            }
+            
+            let html = '';
+            students.forEach(s => {
+                const marksDisplay = s.marks !== null ? s.marks : '-';
+                let gradeDisplay = '-';
+                if (s.grade) {
+                    const gradeClass = `grade-${s.grade.replace('+', '-plus')}`;
+                    gradeDisplay = `<span class="grade-badge ${gradeClass}">${s.grade}</span>`;
+                }
+                
+                html += `
+                    <tr>
+                        <td>${escapeHtml(s.id)}</td>
+                        <td>${escapeHtml(s.name)}</td>
+                        <td>${marksDisplay}</td>
+                        <td>${gradeDisplay}</td>
+                        <td><button onclick="deleteStudent('${s.id}')" class="btn btn-secondary">Delete</button></td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        }
+        
+        function escapeHtml(str) {
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+        
+        function addStudent(id, name) {
+            if (students.find(s => s.id === id)) {
+                showMessage('Student ID already exists!', false);
+                return false;
+            }
+            students.push({ id, name, marks: null, grade: null });
+            saveStudents();
+            renderTable();
+            showMessage(`Student ${name} added!`, true);
+            return true;
+        }
+        
+        function assignResult(id, marks) {
+            const student = students.find(s => s.id === id);
+            if (!student) {
+                showMessage('Student not found!', false);
+                return false;
+            }
+            student.marks = marks;
+            student.grade = calculateGrade(marks);
+            saveStudents();
+            renderTable();
+            showMessage(`Result assigned: ${marks} marks (Grade: ${student.grade})`, true);
+            return true;
+        }
+        
+        function deleteStudent(id) {
+            if (confirm('Delete this student?')) {
+                students = students.filter(s => s.id !== id);
+                saveStudents();
+                renderTable();
+                showMessage('Student deleted!', true);
+            }
+        }
+        
+        // Form handlers
+        document.getElementById('addStudentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const id = document.getElementById('studentId').value.trim();
+            const name = document.getElementById('studentName').value.trim();
+            if (id && name) addStudent(id, name);
+            this.reset();
+        });
+        
+        document.getElementById('assignResultForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const id = document.getElementById('resultStudentId').value.trim();
+            const marks = parseFloat(document.getElementById('marks').value);
+            if (id && !isNaN(marks)) assignResult(id, marks);
+            this.reset();
+        });
+        
+        document.getElementById('logoutBtn').addEventListener('click', function() {
+            localStorage.clear();
+            window.location.href = 'index.html';
+        });
+        
+        loadStudents();
+    </script>
+</body>
+</html>

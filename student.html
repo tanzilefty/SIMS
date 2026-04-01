@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">📚 Student Dashboard</h1>
+            <button id="logoutBtn" class="btn btn-logout">Logout</button>
+        </div>
+        
+        <div class="result-card" id="resultCard">
+            <div id="studentInfo"></div>
+            <div id="resultContent"></div>
+        </div>
+    </div>
+    
+    <script src="app.js"></script>
+    <script>
+        // Check student access
+        const studentID = localStorage.getItem('studentID');
+        if (localStorage.getItem('userRole') !== 'student' || localStorage.getItem('isLoggedIn') !== 'true' || !studentID) {
+            window.location.href = 'login.html';
+        }
+        
+        const STUDENTS_KEY = 'students';
+        
+        function loadAndDisplay() {
+            const stored = localStorage.getItem(STUDENTS_KEY);
+            const students = stored ? JSON.parse(stored) : [];
+            const student = students.find(s => s.id === studentID);
+            
+            const studentInfoDiv = document.getElementById('studentInfo');
+            const resultDiv = document.getElementById('resultContent');
+            
+            if (!student) {
+                studentInfoDiv.innerHTML = `<div class="student-id">Student ID: ${studentID}</div>`;
+                resultDiv.innerHTML = `
+                    <div class="no-result">
+                        <strong>No Record Found</strong><br>
+                        Contact administrator to add your record.
+                    </div>
+                `;
+                return;
+            }
+            
+            studentInfoDiv.innerHTML = `
+                <div class="student-id">Student ID: ${escapeHtml(student.id)}</div>
+                <div class="student-name">${escapeHtml(student.name)}</div>
+            `;
+            
+            if (student.marks !== null && student.grade) {
+                const gradeClass = `grade-${student.grade.replace('+', '-plus')}-large`;
+                resultDiv.innerHTML = `
+                    <div class="result-container">
+                        <h3>Your Result</h3>
+                        <div class="result-details">
+                            <div class="result-item">
+                                <div>Marks</div>
+                                <div class="result-value">${student.marks} / 100</div>
+                            </div>
+                            <div class="result-item">
+                                <div>Grade</div>
+                                <div class="result-value grade-badge ${gradeClass}" style="font-size: 1.2rem;">${student.grade}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                resultDiv.innerHTML = `
+                    <div class="no-result">
+                        <strong>No Result Yet</strong><br>
+                        Your result has not been assigned.
+                    </div>
+                `;
+            }
+        }
+        
+        function escapeHtml(str) {
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+        
+        document.getElementById('logoutBtn').addEventListener('click', function() {
+            localStorage.clear();
+            window.location.href = 'index.html';
+        });
+        
+        loadAndDisplay();
+        
+        // Listen for updates
+        window.addEventListener('storage', function(e) {
+            if (e.key === STUDENTS_KEY) loadAndDisplay();
+        });
+    </script>
+    <style>
+        .grade-A-plus-large { background-color: #10b981; color: white; padding: 0.5rem 1rem; border-radius: 0.5rem; }
+        .grade-A-large { background-color: #3b82f6; color: white; padding: 0.5rem 1rem; border-radius: 0.5rem; }
+        .grade-B-large { background-color: #8b5cf6; color: white; padding: 0.5rem 1rem; border-radius: 0.5rem; }
+        .grade-C-large { background-color: #f59e0b; color: white; padding: 0.5rem 1rem; border-radius: 0.5rem; }
+        .grade-F-large { background-color: #ef4444; color: white; padding: 0.5rem 1rem; border-radius: 0.5rem; }
+        .result-container h3 { margin-bottom: 1rem; }
+    </style>
+</body>
+</html>
