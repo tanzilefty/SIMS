@@ -97,7 +97,7 @@ Logout
 
 1. Download or clone the repository:
    ```bash
-   git clone https://github.com/your-username/sims-project.git](https://github.com/tanzilefty/SIMS
+   git clone https://github.com/tanzilefty/SIMS.git
 
 2. Open `index.html` in your browser.
 
