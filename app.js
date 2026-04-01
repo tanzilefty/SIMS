@@ -1,128 +1,78 @@
-// =======================
-// app.js
-// =======================
-
-document.addEventListener('DOMContentLoaded', function() {
-
-    const STUDENTS_KEY = 'students';
-    let students = [];
-
-    // =======================
-    // LOGIN HANDLER
-    // =======================
+// ================= LOGIN HANDLING =================
+document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('loginForm');
     if (loginForm) {
-        loginForm.addEventListener('submit', function(e) {
+        loginForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            handleLogin();
-        });
+            const role = document.getElementById('role').value;
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
 
-        // Optional: change label placeholder based on role
-        const roleSelect = document.getElementById('role');
-        const usernameLabel = document.getElementById('usernameLabel');
-        const passwordInput = document.getElementById('password');
+            if (!username) return showError('Please enter username/ID');
 
-        roleSelect.addEventListener('change', function() {
-            if (this.value === 'admin') {
-                usernameLabel.textContent = 'Username';
-                passwordInput.required = true;
-                passwordInput.placeholder = '';
+            if (role === 'admin') {
+                if (username === 'admin' && password === '123') {
+                    localStorage.setItem('userRole', 'admin');
+                    localStorage.setItem('isLoggedIn', 'true');
+                    window.location.href = 'admin.html';
+                } else {
+                    showError('Invalid admin credentials');
+                }
             } else {
-                usernameLabel.textContent = 'Student ID';
-                passwordInput.required = false;
-                passwordInput.placeholder = 'Password not required';
-            }
-        });
-        roleSelect.dispatchEvent(new Event('change'));
-    }
-
-    function handleLogin() {
-        const role = document.getElementById('role').value;
-        const username = document.getElementById('username').value.trim();
-        const password = document.getElementById('password').value;
-
-        if (!username) {
-            showError('Please enter username/ID');
-            return;
-        }
-
-        if (role === 'admin') {
-            if (username === 'admin' && password === '123') {
-                localStorage.setItem('userRole', 'admin');
+                // Student login (any ID works if added)
+                const students = JSON.parse(localStorage.getItem('students') || '[]');
+                if (!students.find(s => s.id === username)) {
+                    showError('Student not found. Contact admin.');
+                    return;
+                }
+                localStorage.setItem('userRole', 'student');
+                localStorage.setItem('studentID', username);
                 localStorage.setItem('isLoggedIn', 'true');
-                window.location.href = 'admin.html';
-            } else {
-                showError('Invalid admin credentials');
+                window.location.href = 'student.html';
             }
-        } else {
-            localStorage.setItem('userRole', 'student');
-            localStorage.setItem('studentID', username);
-            localStorage.setItem('isLoggedIn', 'true');
-            window.location.href = 'student.html';
-        }
-    }
-
-    function showError(message) {
-        let errorDiv = document.getElementById('errorMessage');
-        if (!errorDiv) {
-            errorDiv = document.createElement('div');
-            errorDiv.id = 'errorMessage';
-            errorDiv.className = 'error-message';
-            const form = document.getElementById('loginForm');
-            form.insertBefore(errorDiv, form.firstChild);
-        }
-        errorDiv.textContent = message;
-        errorDiv.style.display = 'block';
-        setTimeout(() => errorDiv.style.display = 'none', 3000);
-    }
-
-    // =======================
-    // ADMIN DASHBOARD
-    // =======================
-    if (document.getElementById('addStudentForm')) {
-        // Redirect if not admin
-        if (localStorage.getItem('userRole') !== 'admin' || localStorage.getItem('isLoggedIn') !== 'true') {
-            window.location.href = 'login.html';
-        }
-
-        loadStudents();
-
-        // Add student
-        document.getElementById('addStudentForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const id = document.getElementById('studentId').value.trim();
-            const name = document.getElementById('studentName').value.trim();
-            if (id && name) addStudent(id, name);
-            this.reset();
-        });
-
-        // Assign result
-        document.getElementById('assignResultForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const id = document.getElementById('resultStudentId').value.trim();
-            const marks = parseFloat(document.getElementById('marks').value);
-            if (id && !isNaN(marks)) assignResult(id, marks);
-            this.reset();
-        });
-
-        // Logout
-        document.getElementById('logoutBtn').addEventListener('click', function() {
-           // Only clear session info, keep student data intact
-				localStorage.removeItem('isLoggedIn');
-				localStorage.removeItem('userRole');
-				localStorage.removeItem('studentID');
-            window.location.href = 'login.html';
         });
     }
+});
 
-    function loadStudents() {
-        const stored = localStorage.getItem(STUDENTS_KEY);
-        students = stored ? JSON.parse(stored) : [];
-        renderTable();
+// Show login error
+function showError(msg) {
+    let div = document.getElementById('errorMessage');
+    if (!div) {
+        div = document.createElement('div');
+        div.id = 'errorMessage';
+        div.className = 'error-message';
+        const form = document.getElementById('loginForm');
+        form.insertBefore(div, form.firstChild);
     }
+    div.textContent = msg;
+    div.style.display = 'block';
+    setTimeout(() => div.style.display = 'none', 3000);
+}
+
+// ================= LOGOUT HANDLING =================
+document.querySelectorAll('#logoutBtn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        localStorage.removeItem('isLoggedIn');
+        localStorage.removeItem('userRole');
+        localStorage.removeItem('studentID');
+        window.location.href = 'index.html';
+    });
+});
+
+// ================= ADMIN DASHBOARD =================
+const adminForm = document.getElementById('addStudentForm');
+const resultForm = document.getElementById('assignResultForm');
+const studentTable = document.getElementById('studentTableBody');
+
+if (studentTable) {
+    if (localStorage.getItem('userRole') !== 'admin' || localStorage.getItem('isLoggedIn') !== 'true') {
+        window.location.href = 'login.html';
+    }
+
+    let students = JSON.parse(localStorage.getItem('students') || '[]');
 
     function saveStudents() {
-        localStorage.setItem(STUDENTS_KEY, JSON.stringify(students));
+        localStorage.setItem('students', JSON.stringify(students));
     }
 
     function calculateGrade(marks) {
@@ -133,76 +83,20 @@ document.addEventListener('DOMContentLoaded', function() {
         return 'F';
     }
 
-    function showMessage(msg, isSuccess) {
-        const div = isSuccess ? document.getElementById('successMessage') : document.getElementById('errorMessage');
-        if (!div) return;
-        div.textContent = msg;
-        div.style.display = 'block';
-        setTimeout(() => div.style.display = 'none', 3000);
-    }
-
     function renderTable() {
-        const tbody = document.getElementById('studentTableBody');
-        if (!tbody) return;
         if (students.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No students added</td></tr>';
+            studentTable.innerHTML = '<tr><td colspan="5" style="text-align:center;">No students added</td></tr>';
             return;
         }
-
-        let html = '';
-        students.forEach(s => {
-            const marksDisplay = s.marks !== null ? s.marks : '-';
-            let gradeDisplay = '-';
-            if (s.grade) {
-                const gradeClass = `grade-${s.grade.replace('+', '-plus')}`;
-                gradeDisplay = `<span class="grade-badge ${gradeClass}">${s.grade}</span>`;
-            }
-            html += `
-                <tr>
-                    <td>${escapeHtml(s.id)}</td>
-                    <td>${escapeHtml(s.name)}</td>
-                    <td>${marksDisplay}</td>
-                    <td>${gradeDisplay}</td>
-                    <td><button onclick="deleteStudent('${s.id}')" class="btn btn-secondary">Delete</button></td>
-                </tr>
-            `;
-        });
-        tbody.innerHTML = html;
-    }
-
-    function escapeHtml(str) {
-        return str.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
-        });
-    }
-
-    function addStudent(id, name) {
-        if (students.find(s => s.id === id)) {
-            showMessage('Student ID already exists!', false);
-            return false;
-        }
-        students.push({ id, name, marks: null, grade: null });
-        saveStudents();
-        renderTable();
-        showMessage(`Student ${name} added!`, true);
-        return true;
-    }
-
-    function assignResult(id, marks) {
-        const student = students.find(s => s.id === id);
-        if (!student) {
-            showMessage('Student not found!', false);
-            return false;
-        }
-        student.marks = marks;
-        student.grade = calculateGrade(marks);
-        saveStudents();
-        renderTable();
-        showMessage(`Result assigned: ${marks} marks (Grade: ${student.grade})`, true);
-        return true;
+        studentTable.innerHTML = students.map(s => `
+            <tr>
+                <td>${escapeHtml(s.id)}</td>
+                <td>${escapeHtml(s.name)}</td>
+                <td>${s.marks !== null ? s.marks : '-'}</td>
+                <td>${s.grade ? `<span class="grade-badge grade-${s.grade.replace('+','-plus')}">${s.grade}</span>` : '-'}</td>
+                <td><button onclick="deleteStudent('${s.id}')" class="btn btn-secondary">Delete</button></td>
+            </tr>
+        `).join('');
     }
 
     window.deleteStudent = function(id) {
@@ -210,72 +104,91 @@ document.addEventListener('DOMContentLoaded', function() {
             students = students.filter(s => s.id !== id);
             saveStudents();
             renderTable();
-            showMessage('Student deleted!', true);
         }
-    };
-
-    // =======================
-    // STUDENT DASHBOARD
-    // =======================
-    if (document.getElementById('studentInfo')) {
-        const studentID = localStorage.getItem('studentID');
-        if (localStorage.getItem('userRole') !== 'student' || localStorage.getItem('isLoggedIn') !== 'true' || !studentID) {
-            window.location.href = 'login.html';
-        }
-
-        const studentInfoDiv = document.getElementById('studentInfo');
-        const resultDiv = document.getElementById('resultContent');
-
-        function loadAndDisplay() {
-            const stored = localStorage.getItem(STUDENTS_KEY);
-            const students = stored ? JSON.parse(stored) : [];
-            const student = students.find(s => s.id === studentID);
-
-            if (!student) {
-                studentInfoDiv.innerHTML = `<div class="student-id">Student ID: ${studentID}</div>`;
-                resultDiv.innerHTML = `<div class="no-result"><strong>No Record Found</strong><br>Contact administrator.</div>`;
-                return;
-            }
-
-            studentInfoDiv.innerHTML = `<div class="student-id">Student ID: ${escapeHtml(student.id)}</div>
-                                        <div class="student-name">${escapeHtml(student.name)}</div>`;
-
-            if (student.marks !== null && student.grade) {
-                const gradeClass = `grade-${student.grade.replace('+', '-plus')}-large`;
-                resultDiv.innerHTML = `
-                    <div class="result-container">
-                        <h3>Your Result</h3>
-                        <div class="result-details">
-                            <div class="result-item">
-                                <div>Marks</div>
-                                <div class="result-value">${student.marks} / 100</div>
-                            </div>
-                            <div class="result-item">
-                                <div>Grade</div>
-                                <div class="result-value grade-badge ${gradeClass}" style="font-size:1.2rem;">${student.grade}</div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            } else {
-                resultDiv.innerHTML = `<div class="no-result"><strong>No Result Yet</strong><br>Your result has not been assigned.</div>`;
-            }
-        }
-
-        document.getElementById('logoutBtn').addEventListener('click', function() {
-           // Only clear session info, keep student data intact
-				localStorage.removeItem('isLoggedIn');
-				localStorage.removeItem('userRole');
-				localStorage.removeItem('studentID');
-            window.location.href = 'login.html';
-        });
-
-        loadAndDisplay();
-
-        // Update if localStorage changes
-        window.addEventListener('storage', function(e) {
-            if (e.key === STUDENTS_KEY) loadAndDisplay();
-        });
     }
 
-});
+    function escapeHtml(str) {
+        return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;');
+    }
+
+    adminForm.addEventListener('submit', e => {
+        e.preventDefault();
+        const id = document.getElementById('studentId').value.trim();
+        const name = document.getElementById('studentName').value.trim();
+        if (!id || !name) return;
+        if (students.find(s => s.id === id)) {
+            alert('Student ID already exists!');
+            return;
+        }
+        students.push({id, name, marks: null, grade: null});
+        saveStudents();
+        renderTable();
+        adminForm.reset();
+    });
+
+    resultForm.addEventListener('submit', e => {
+        e.preventDefault();
+        const id = document.getElementById('resultStudentId').value.trim();
+        const marks = parseFloat(document.getElementById('marks').value);
+        const student = students.find(s => s.id === id);
+        if (!student) {
+            alert('Student not found!');
+            return;
+        }
+        student.marks = marks;
+        student.grade = calculateGrade(marks);
+        saveStudents();
+        renderTable();
+        resultForm.reset();
+    });
+
+    renderTable();
+}
+
+// ================= STUDENT DASHBOARD =================
+const studentDiv = document.getElementById('resultContent');
+const studentInfoDiv = document.getElementById('studentInfo');
+
+if (studentDiv && studentInfoDiv) {
+    const studentID = localStorage.getItem('studentID');
+    if (!studentID || localStorage.getItem('userRole') !== 'student' || localStorage.getItem('isLoggedIn') !== 'true') {
+        window.location.href = 'login.html';
+    }
+
+    function loadStudentResult() {
+        const students = JSON.parse(localStorage.getItem('students') || '[]');
+        const student = students.find(s => s.id === studentID);
+
+        studentInfoDiv.innerHTML = student ? `
+            <div class="student-id">Student ID: ${escapeHtml(student.id)}</div>
+            <div class="student-name">${escapeHtml(student.name)}</div>
+        ` : `<div class="student-id">Student ID: ${studentID}</div>`;
+
+        if (!student || student.marks === null) {
+            studentDiv.innerHTML = `<div class="no-result"><strong>No Result Yet</strong><br>Contact admin.</div>`;
+            return;
+        }
+
+        const gradeClass = `grade-${student.grade.replace('+','-plus')}-large`;
+        studentDiv.innerHTML = `
+            <div class="result-container">
+                <h3>Your Result</h3>
+                <div class="result-details">
+                    <div class="result-item">
+                        <div>Marks</div>
+                        <div class="result-value">${student.marks} / 100</div>
+                    </div>
+                    <div class="result-item">
+                        <div>Grade</div>
+                        <div class="result-value grade-badge ${gradeClass}" style="font-size:1.2rem">${student.grade}</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    loadStudentResult();
+    window.addEventListener('storage', e => {
+        if (e.key === 'students') loadStudentResult();
+    });
+}
