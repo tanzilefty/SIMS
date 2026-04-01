@@ -50,6 +50,24 @@ body {
   font-size: 1rem;
 }
 
+/* ==================== LOGIN EXTRA ==================== */
+.login-demo {
+  margin-top: 1rem;
+  text-align: center;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.back-home {
+  margin-top: 0.5rem;
+  text-align: center;
+}
+
+.back-home a {
+  color: #4f46e5;
+  text-decoration: none;
+}
+
 /* ==================== FORM STYLES ==================== */
 .form-group {
   margin-bottom: 1.25rem;
@@ -101,6 +119,10 @@ select:focus {
 
 .btn:hover {
   background-color: #4338ca;
+}
+
+.btn-auto {
+  width: auto;
 }
 
 .btn-logout {
@@ -177,7 +199,7 @@ select:focus {
   min-width: 200px;
 }
 
-/* Table Styles */
+/* ==================== TABLE ==================== */
 .student-table {
   width: 100%;
   border-collapse: collapse;
@@ -196,7 +218,11 @@ select:focus {
   font-weight: 600;
 }
 
-/* Message Styles */
+.text-center {
+  text-align: center;
+}
+
+/* ==================== MESSAGE ==================== */
 .success-message,
 .error-message {
   padding: 0.75rem;
@@ -215,7 +241,7 @@ select:focus {
   color: white;
 }
 
-/* Grade Badges */
+/* ==================== GRADE BADGES ==================== */
 .grade-badge {
   display: inline-block;
   padding: 0.25rem 0.5rem;
@@ -230,17 +256,13 @@ select:focus {
 .grade-C { background-color: #f59e0b; color: white; }
 .grade-F { background-color: #ef4444; color: white; }
 
-/* Student Dashboard */
+/* ==================== STUDENT DASHBOARD ==================== */
 .result-card {
   background-color: #ffffff;
   border-radius: 1rem;
   padding: 2rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   text-align: center;
-}
-
-.student-info {
-  margin-bottom: 2rem;
 }
 
 .student-name {
@@ -278,7 +300,47 @@ select:focus {
   color: #92400e;
 }
 
-/* Responsive */
+/* Large Grade Badges */
+.grade-A-plus-large { 
+  background-color: #10b981; 
+  color: white; 
+  padding: 0.5rem 1rem; 
+  border-radius: 0.5rem; 
+}
+
+.grade-A-large { 
+  background-color: #3b82f6; 
+  color: white; 
+  padding: 0.5rem 1rem; 
+  border-radius: 0.5rem; 
+}
+
+.grade-B-large { 
+  background-color: #8b5cf6; 
+  color: white; 
+  padding: 0.5rem 1rem; 
+  border-radius: 0.5rem; 
+}
+
+.grade-C-large { 
+  background-color: #f59e0b; 
+  color: white; 
+  padding: 0.5rem 1rem; 
+  border-radius: 0.5rem; 
+}
+
+.grade-F-large { 
+  background-color: #ef4444; 
+  color: white; 
+  padding: 0.5rem 1rem; 
+  border-radius: 0.5rem; 
+}
+
+.result-container h3 {
+  margin-bottom: 1rem;
+}
+
+/* ==================== RESPONSIVE ==================== */
 @media (max-width: 768px) {
   .dashboard-container {
     padding: 1rem;
