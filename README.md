@@ -1,7 +1,3 @@
-Here’s a clean and professional **`README.md`** file based on your SIMS project proposal. You can directly copy this into your GitHub repo.
-
-
-markdown
 # 🎓 Student Information Management System (SIMS)
 
 A simple, browser-based **Student Information Management System (SIMS)** built using **HTML, CSS, and Vanilla JavaScript**. This project is designed for educational purposes and demonstrates how to manage student data without any backend or database.
@@ -55,13 +51,9 @@ The system runs entirely in the browser using **localStorage**, so no server or 
 - **JavaScript** – Logic
 - **localStorage** – Data storage
 
-
 ## 📁 Project Structure
 
-
-
 student-information-system/
-│
 ├── index.html      # Landing page
 ├── login.html      # Login page
 ├── admin.html      # Admin dashboard
@@ -105,7 +97,7 @@ Logout
 
 1. Download or clone the repository:
    ```bash
-   git clone https://github.com/your-username/sims-project.git
+   git clone https://github.com/your-username/sims-project.git](https://github.com/tanzilefty/SIMS
 
 2. Open `index.html` in your browser.
 
@@ -171,8 +163,3 @@ Logout
 
 This project is for educational purposes only.
 
-
-
-If you want, I can also:
-- Create a **more attractive GitHub README (with badges, screenshots, GIFs)**  
-- Or generate a **GitHub repo structure + upload guide** 🚀
