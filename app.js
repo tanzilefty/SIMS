@@ -105,14 +105,12 @@ document.addEventListener('DOMContentLoaded', function() {
             this.reset();
         });
 
-       // CORRECT LOGOUT
-            document.getElementById('logoutBtn').addEventListener('click', function() {
-            localStorage.removeItem('userRole');
-            localStorage.removeItem('isLoggedIn');
-            localStorage.removeItem('studentID');
-            // DO NOT remove 'students' — that's the database!
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', function() {
+            localStorage.clear();
             window.location.href = 'index.html';
         });
+    }
 
     function loadStudents() {
         const stored = localStorage.getItem(STUDENTS_KEY);
